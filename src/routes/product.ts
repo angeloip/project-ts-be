@@ -7,5 +7,8 @@ const router = Router()
 router.post('/', multerMiddleware, productController.createProduct)
 router.get('/', productController.getProducts)
 router.get('/:id', productController.getProduct)
+router.patch('/:id', productController.updateProduct)
+router.patch('/image/:id', multerMiddleware, productController.updatePicture)
+router.delete('/:id', productController.deleteProduct)
 
 export { router }

@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import { ProductModel } from '../models/product'
 import { remove } from 'fs-extra'
-import { uploadProductPicture } from '../helpers/cloudinary'
+import {
+  deleteProductPicture,
+  uploadProductPicture
+} from '../helpers/cloudinary'
 
 export const productController = {
   getProducts: async (_req: Request, res: Response, next: NextFunction) => {
@@ -53,11 +56,56 @@ export const productController = {
       if (!product)
         return res.status(400).json({ msg: 'Producto no encontrado' })
 
-      const data = req.body
-      await ProductModel.findByIdAndUpdate(id, data, {
+      const newProductInfo = req.body
+      await ProductModel.findByIdAndUpdate(id, newProductInfo, {
         new: true
       })
       return res.status(200).json({ msg: 'Producto actualizado' })
+    } catch (error) {
+      next(error)
+    }
+  },
+  updatePicture: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+
+      const product = await ProductModel.findById(id)
+
+      if (!product)
+        return res.status(404).json({ msg: 'Producto no existente' })
+
+      let image = null
+
+      if (req.file) {
+        if (product.thumbnail.public_id === '') {
+          const result = await uploadProductPicture(req.file.path)
+          await remove(req.file.path)
+          image = {
+            url: result.secure_url,
+            public_id: result.public_id
+          }
+        } else {
+          await deleteProductPicture(product.thumbnail.public_id)
+          const result = await uploadProductPicture(req.file.path)
+          await remove(req.file.path)
+          image = {
+            url: result.secure_url,
+            public_id: result.public_id
+          }
+        }
+        product.thumbnail.url = image.url
+        product.thumbnail.public_id = image.public_id
+
+        await ProductModel.findByIdAndUpdate(id, product, {
+          new: true
+        })
+
+        return res.status(200).json({ msg: 'Imagen actualizada' })
+      } else {
+        return res
+          .status(400)
+          .json({ msg: 'No se ha seleccionado ninguna imagen' })
+      }
     } catch (error) {
       next(error)
     }
@@ -69,7 +117,12 @@ export const productController = {
       if (!product)
         return res.status(400).json({ msg: 'Producto no encontrado' })
 
-      await ProductModel.findByIdAndDelete(id)
+      const deletedProduct = await ProductModel.findByIdAndDelete(id)
+
+      if (deletedProduct && deletedProduct.thumbnail.public_id) {
+        await deleteProductPicture(deletedProduct.thumbnail.public_id)
+      }
+
       return res.status(200).json({ msg: 'Producto eliminado' })
     } catch (error) {
       next(error)

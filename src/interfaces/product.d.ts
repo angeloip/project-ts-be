@@ -11,7 +11,7 @@ export interface Product {
 
 interface Thumbnail {
   url: string
-  public_id?: string
+  public_id: string
 }
 
 export type partialProduct = Partial<Product>
