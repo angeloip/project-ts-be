@@ -9,7 +9,7 @@ const ProductSchema = new Schema<Product>(
     discountPercentage: { type: Number, default: 0 },
     rating: { type: Number, default: 0 },
     stock: { type: Number, required: true },
-    category: { type: String, required: true, trim: true },
+    category: { type: Schema.Types.ObjectId, ref: 'Category' },
     thumbnail: {
       url: {
         type: String,

@@ -34,6 +34,11 @@ export const categoryController = {
     try {
       const category = req.body
 
+      const categoryExist = await CategoryModel.findOne({ name: category.name })
+
+      if (categoryExist)
+        return res.status(406).json({ msg: 'Categoría existente' })
+
       const newCategory = new CategoryModel(category)
       await newCategory.save()
 

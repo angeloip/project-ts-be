@@ -3,7 +3,7 @@ import { Category } from '../interfaces/category'
 
 const CategorySchema = new Schema<Category>(
   {
-    name: { type: String, required: true, trim: true }
+    name: { type: String, required: true, unique: true, trim: true }
   },
   {
     timestamps: true,

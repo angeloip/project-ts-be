@@ -1,3 +1,5 @@
+import { Types } from 'mongoose'
+
 export interface Product {
   name: string
   description: string
@@ -5,7 +7,7 @@ export interface Product {
   discountPercentage: number
   rating: number
   stock: number
-  category: string
+  category: Types.ObjectId
   thumbnail: Thumbnail
 }
 
