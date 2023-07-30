@@ -37,7 +37,7 @@ export const productController = {
     next: NextFunction
   ) => {
     try {
-      const { name, key, order } = req.query
+      const { name, key, order, min, max } = req.query
 
       const category = await CategoryModel.findOne({ name })
 
@@ -53,7 +53,16 @@ export const productController = {
       const orderByField = orderMap[key as keyof typeof orderMap]
       const sortOrder = order === 'desc' ? -1 : 1
 
-      const products = await ProductModel.find({ category: category._id })
+      const query: any = { category: category._id }
+
+      if (min && max) {
+        query.price = {
+          $gte: min,
+          $lte: max
+        }
+      }
+
+      const products = await ProductModel.find(query)
         .sort({ [orderByField]: sortOrder })
         .populate('category', 'name')
 
