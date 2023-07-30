@@ -26,4 +26,10 @@ const ProductSchema = new Schema<Product>(
   }
 )
 
+ProductSchema.methods.toJSON = function () {
+  const productObject = this.toObject()
+  delete productObject.updatedAt
+  return productObject
+}
+
 export const ProductModel = model<Product>('Product', ProductSchema)

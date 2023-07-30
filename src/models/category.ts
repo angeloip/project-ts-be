@@ -11,4 +11,10 @@ const CategorySchema = new Schema<Category>(
   }
 )
 
+CategorySchema.methods.toJSON = function () {
+  const categoryObject = this.toObject()
+  delete categoryObject.updatedAt
+  return categoryObject
+}
+
 export const CategoryModel = model<Category>('Category', CategorySchema)

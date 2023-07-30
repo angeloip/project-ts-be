@@ -31,6 +31,28 @@ export const productController = {
       next(error)
     }
   },
+  getProductsByCategory: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { name } = req.query
+
+      const category = await CategoryModel.findOne({ name })
+
+      if (!category)
+        return res.status(404).json({ msg: 'Categoría no encontrada' })
+
+      const products = await ProductModel.find({
+        category: category._id
+      }).populate('category', 'name')
+
+      return res.status(200).json(products)
+    } catch (error) {
+      next(error)
+    }
+  },
   createProduct: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const product = req.body

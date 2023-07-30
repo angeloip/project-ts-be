@@ -16,4 +16,10 @@ const OrderSchema = new Schema<Order>(
   }
 )
 
+OrderSchema.methods.toJSON = function () {
+  const orderObject = this.toObject()
+  delete orderObject.updatedAt
+  return orderObject
+}
+
 export const OrderModel = model<Order>('Product', OrderSchema)

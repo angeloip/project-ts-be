@@ -13,4 +13,11 @@ const UserSchema = new Schema<User>(
   }
 )
 
+UserSchema.methods.toJSON = function () {
+  const userObject = this.toObject()
+  delete userObject.password
+  delete userObject.updatedAt
+  return userObject
+}
+
 export const UserModel = model<User>('User', UserSchema)
