@@ -37,16 +37,25 @@ export const productController = {
     next: NextFunction
   ) => {
     try {
-      const { name } = req.query
+      const { name, key, order } = req.query
 
       const category = await CategoryModel.findOne({ name })
 
-      if (!category)
+      if (!category) {
         return res.status(404).json({ msg: 'Categoría no encontrada' })
+      }
 
-      const products = await ProductModel.find({
-        category: category._id
-      }).populate('category', 'name')
+      const orderMap = {
+        name: 'name',
+        price: 'price'
+      }
+
+      const orderByField = orderMap[key as keyof typeof orderMap]
+      const sortOrder = order === 'desc' ? -1 : 1
+
+      const products = await ProductModel.find({ category: category._id })
+        .sort({ [orderByField]: sortOrder })
+        .populate('category', 'name')
 
       return res.status(200).json(products)
     } catch (error) {
