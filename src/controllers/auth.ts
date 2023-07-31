@@ -61,7 +61,7 @@ export const authController = {
       next(error)
     }
   },
-  signOut: async (_req: Request, res: Response, next: NextFunction) => {
+  logout: async (_req: Request, res: Response, next: NextFunction) => {
     try {
       res.clearCookie('rftoken')
 
