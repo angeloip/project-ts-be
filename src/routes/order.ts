@@ -1,9 +1,9 @@
-import { Router } from "express";
-import { orderController } from "../controllers/order";
-import { checkJwt } from "../middlewares/session";
+import { Router } from 'express'
+import { orderController } from '../controllers/order'
+import { checkAuth } from '../middlewares/checkAuth'
 
-const router = Router();
+const router = Router()
 
-router.get("/", checkJwt, orderController.getItems);
+router.get('/', checkAuth, orderController.getItems)
 
-export { router };
+export { router }

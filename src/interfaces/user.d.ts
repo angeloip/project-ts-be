@@ -3,9 +3,16 @@ export interface Auth {
   password: string
 }
 
-export interface User extends Auth {
+export interface Avatar {
+  url: string
+  public_id: string
+}
+
+export interface User {
   _id?: string
   name: string
+  email: string
+  password: string
+  avatar?: Avatar
   createdAt?: Date
-  updatedAt?: Date
 }

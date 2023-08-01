@@ -1,6 +1,6 @@
 import { Auth, User } from '../interfaces/user'
 import { encrypt, verified } from '../helpers/bcrypt'
-import { generateToken } from '../helpers/jwt'
+import { refresh } from '../helpers/jwt'
 import { createUser, getUserByEmail } from './user'
 
 export const registerNewUser = async ({ name, email, password }: User) => {
@@ -14,7 +14,7 @@ export const loginUser = async ({ email, password }: Auth) => {
   const isMatch = await verified(password, user.password)
   if (!isMatch) return 'INCORRECT_PASSWORD'
 
-  const token = generateToken({ id: user._id })
+  const token = refresh(user._id)
 
   return token
 }

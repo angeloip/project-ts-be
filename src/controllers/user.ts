@@ -1,15 +1,12 @@
-import { NextFunction, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { UserModel } from '../models/user'
-import { RequestExt } from '../interfaces/req-ext'
 
 export const userController = {
-  getUser: async (req: RequestExt, res: Response, next: NextFunction) => {
+  getUsers: async (_req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = await UserModel.findById(req.user?.id).select(
-        '-password -__v -updatedAt'
-      )
+      const users = await UserModel.find({})
 
-      res.status(200).json({ user })
+      return res.status(200).json(users)
     } catch (error) {
       next(error)
     }

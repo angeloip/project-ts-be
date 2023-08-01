@@ -1,8 +1,11 @@
 import { NextFunction, Request, Response } from 'express'
-import { loginUser, registerNewUser } from '../services/auth'
+import { registerNewUser } from '../services/auth'
 import { getUserByEmail } from '../services/user'
 import { verify } from 'jsonwebtoken'
-import { access } from '../helpers/jwt'
+import { access, refresh } from '../helpers/jwt'
+import { UserModel } from '../models/user'
+import { verified } from '../helpers/bcrypt'
+import { RequestExt } from '../interfaces/req-ext'
 
 export const authController = {
   register: async (req: Request, res: Response, next: NextFunction) => {
@@ -22,17 +25,26 @@ export const authController = {
   },
   login: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = req.body
-      const responseUser = await loginUser(user)
-      if (responseUser === 'USER_NOT_FOUND')
-        return res
-          .status(400)
-          .json({ msg: 'El correo no pertenece a una cuenta' })
+      const { email, password } = req.body
 
-      if (responseUser === 'INCORRECT_PASSWORD')
+      const user = await UserModel.findOne({ email: email })
+
+      if (!user) return res.status(400).json({ msg: 'Usuario no encontrado' })
+
+      const isMatch = await verified(password, user.password)
+
+      if (!isMatch)
         return res.status(400).json({ msg: 'Contraseña incorrecta' })
 
-      return res.status(200).json(responseUser)
+      const rf_token = refresh(user._id.toString())
+
+      res.cookie('rftoken', rf_token, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+        sameSite: 'lax'
+      })
+
+      return res.status(200).json({ name: user.name })
     } catch (error) {
       next(error)
     }
@@ -53,10 +65,19 @@ export const authController = {
             .json({ msg: 'Por favor, inicie sesión nuevamente' })
 
         const userToken = user as { id: string }
-        const ac_token = access({ id: userToken.id })
+        const ac_token = access(userToken.id)
 
         return res.status(200).json({ ac_token })
       })
+    } catch (error) {
+      next(error)
+    }
+  },
+  getAuthUser: async (req: RequestExt, res: Response, next: NextFunction) => {
+    try {
+      const user = await UserModel.findById(req.user?.id)
+
+      return res.status(200).json({ user })
     } catch (error) {
       next(error)
     }
