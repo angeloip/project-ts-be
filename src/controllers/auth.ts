@@ -77,7 +77,7 @@ export const authController = {
     try {
       const user = await UserModel.findById(req.user?.id)
 
-      return res.status(200).json({ user })
+      return res.status(200).json(user)
     } catch (error) {
       next(error)
     }

@@ -12,7 +12,7 @@ export const access = (id: string) => {
 
 export const verifyToken = (token: string) => {
   try {
-    return verify(token, process.env.REFRESH_TOKEN as string)
+    return verify(token, process.env.ACCESS_TOKEN as string)
   } catch (error) {
     if (error instanceof JsonWebTokenError) {
       return null

@@ -1,5 +1,4 @@
 import { NextFunction, Response } from 'express'
-//import { verify } from 'jsonwebtoken'
 import { RequestExt } from '../interfaces/req-ext'
 import { verifyToken } from '../helpers/jwt'
 
