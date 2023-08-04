@@ -3,11 +3,19 @@ import { Order } from '../interfaces/order'
 
 const OrderSchema = new Schema<Order>(
   {
-    products: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
-    price: [{ type: Number, required: true }],
-    quantities: [{ type: Number, required: true }],
+    products: [
+      {
+        name: { type: String, required: true, trim: true },
+        price: { type: Number, required: true },
+        quantity: { type: Number, required: true },
+        discountPercentage: { type: Number, default: 0 },
+        subtotal: { type: Number, required: true },
+        category: { type: Schema.Types.ObjectId, ref: 'Category' }
+      }
+    ],
     total: { type: Number, required: true },
-    state: { type: String, required: true, trim: true },
+    quantity: { type: Number, required: true },
+    state: { type: String, enum: ['Realizado', 'Pendiente'], default: 'Pendiente' },
     user: { type: Schema.Types.ObjectId, ref: 'User' }
   },
   {
@@ -22,4 +30,4 @@ OrderSchema.methods.toJSON = function () {
   return orderObject
 }
 
-export const OrderModel = model<Order>('Product', OrderSchema)
+export const OrderModel = model<Order>('Order', OrderSchema)

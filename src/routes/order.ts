@@ -4,6 +4,6 @@ import { checkAuth } from '../middlewares/checkAuth'
 
 const router = Router()
 
-router.get('/', checkAuth, orderController.getItems)
+router.post('/', checkAuth, orderController.createOrder)
 
 export { router }
