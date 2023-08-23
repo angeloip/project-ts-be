@@ -14,18 +14,13 @@ export const categoryController = {
   },
   getCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      try {
-        const { id } = req.params
+      const { id } = req.params
+      const category = await CategoryModel.findById(id)
 
-        const category = await CategoryModel.findById(id)
+      if (!category)
+        return res.status(404).json({ msg: 'Categoría no existente' })
 
-        if (!category)
-          return res.status(404).json({ msg: 'Categoría no existente' })
-
-        return res.status(200).json(category)
-      } catch (error) {
-        next(error)
-      }
+      return res.status(200).json(category)
     } catch (error) {
       next(error)
     }
