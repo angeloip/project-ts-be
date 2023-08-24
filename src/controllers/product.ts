@@ -6,6 +6,7 @@ import {
   uploadProductPicture
 } from '../helpers/cloudinary'
 import { CategoryModel } from '../models/category'
+import { validateProduct } from '../schemas/product'
 
 export const productController = {
   getProducts: async (_req: Request, res: Response, next: NextFunction) => {
@@ -73,14 +74,19 @@ export const productController = {
   },
   createProduct: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const product = req.body
+      const result = validateProduct(req.body)
+
+      if (!result.success)
+        return res.status(400).json({ msg: JSON.parse(result.error.message) })
+
+      const product = { ...result.data }
 
       const category = await CategoryModel.findOne({ name: product.category })
 
       if (!category)
         return res.status(400).json({ msg: 'Categoría no encontrada' })
 
-      product.category = category._id
+      product.category = category._id.toString()
 
       if (req.file) {
         const result = await uploadProductPicture(req.file.path)
