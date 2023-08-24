@@ -4,11 +4,11 @@ export interface Product {
   name: string
   description: string
   price: number
-  discountPercentage: number
-  rating: number
+  discountPercentage?: number
+  rating?: number
   stock: number
-  category: Types.ObjectId
-  thumbnail: Thumbnail
+  category: Types.ObjectId | string
+  thumbnail?: Thumbnail
 }
 
 interface Thumbnail {

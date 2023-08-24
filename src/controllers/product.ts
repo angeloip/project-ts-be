@@ -6,7 +6,9 @@ import {
   uploadProductPicture
 } from '../helpers/cloudinary'
 import { CategoryModel } from '../models/category'
-import { validateProduct } from '../schemas/product'
+import { validatePartialProduct, validateProduct } from '../schemas/product'
+import { validateProperty } from '../helpers/validateProperty'
+import { Product } from '../interfaces/product'
 
 export const productController = {
   getProducts: async (_req: Request, res: Response, next: NextFunction) => {
@@ -74,19 +76,28 @@ export const productController = {
   },
   createProduct: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = validateProduct(req.body)
+      const result = validateProduct({
+        ...req.body,
+        price: validateProperty(req.body.price),
+        stock: validateProperty(req.body.stock)
+      })
 
-      if (!result.success)
-        return res.status(400).json({ msg: JSON.parse(result.error.message) })
+      if (!result.success) {
+        if (req.file) await remove(req.file.path)
+        return res.status(400).json({
+          msg: result.error.errors.map((err) => err.message),
+          type: 'zod'
+        })
+      }
 
-      const product = { ...result.data }
+      const product: Product = { ...result.data }
 
       const category = await CategoryModel.findOne({ name: product.category })
 
       if (!category)
         return res.status(400).json({ msg: 'Categoría no encontrada' })
 
-      product.category = category._id.toString()
+      product.category = category._id
 
       if (req.file) {
         const result = await uploadProductPicture(req.file.path)
@@ -109,7 +120,16 @@ export const productController = {
   updateProduct: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params
-      const newProductInfo = req.body
+      const result = validatePartialProduct(req.body)
+
+      if (!result.success) {
+        return res.status(400).json({
+          msg: result.error.errors.map((err) => err.message),
+          type: 'zod'
+        })
+      }
+
+      const newProductInfo: Partial<Product> = { ...result.data }
 
       const product = await ProductModel.findById(id)
       if (!product)
@@ -144,7 +164,7 @@ export const productController = {
       let image = null
 
       if (req.file) {
-        if (product.thumbnail.public_id === '') {
+        if (product.thumbnail?.public_id === '') {
           const result = await uploadProductPicture(req.file.path)
           await remove(req.file.path)
           image = {
@@ -152,7 +172,7 @@ export const productController = {
             public_id: result.public_id
           }
         } else {
-          await deleteProductPicture(product.thumbnail.public_id)
+          await deleteProductPicture(product.thumbnail?.public_id as string)
           const result = await uploadProductPicture(req.file.path)
           await remove(req.file.path)
           image = {
@@ -160,8 +180,11 @@ export const productController = {
             public_id: result.public_id
           }
         }
-        product.thumbnail.url = image.url
-        product.thumbnail.public_id = image.public_id
+
+        if (product.thumbnail) {
+          product.thumbnail.url = image.url
+          product.thumbnail.public_id = image.public_id
+        }
 
         await ProductModel.findByIdAndUpdate(id, product, {
           new: true
@@ -186,7 +209,7 @@ export const productController = {
 
       const deletedProduct = await ProductModel.findByIdAndDelete(id)
 
-      if (deletedProduct && deletedProduct.thumbnail.public_id) {
+      if (deletedProduct && deletedProduct.thumbnail?.public_id) {
         await deleteProductPicture(deletedProduct.thumbnail.public_id)
       }
 
